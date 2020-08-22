@@ -1,0 +1,42 @@
+--PWM GENERATOR
+--Freq. 300Hz
+--Resol. 10 bits (1024)
+--By Luis Rueda
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.std_logic_unsigned.all;
+
+entity PWM is
+
+	port 
+	(
+		clk		: in std_logic;
+		pwm_out	: out std_logic;
+		dutty_cycle	: in std_logic_vector(9 downto 0)
+	);
+
+end entity;
+
+architecture behavioral of PWM is
+	signal pwm	: std_logic;
+	signal step : std_logic_vector(9 downto 0);
+	signal count : integer range 0 to 162;
+	begin
+		process (clk, dutty_cycle, step, count)
+		begin
+			if (rising_edge(clk)) then
+				count <= count+1;
+				if (count = 162) then
+					step <= step+1;
+					count <= 0;
+					if (step > dutty_cycle) then
+						pwm <= '0';
+					else
+						pwm <= '1';
+					end if;
+				end if;
+			end if;
+		end process;
+		pwm_out <= pwm;
+end behavioral;

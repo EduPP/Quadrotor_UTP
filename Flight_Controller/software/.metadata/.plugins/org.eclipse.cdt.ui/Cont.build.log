@@ -1,0 +1,8 @@
+
+**** Build of configuration Nios II for project Cont ****
+
+make all 
+Info: Building ../Quad_100Mhz/
+make --no-print-directory -C ../Quad_100Mhz/
+[BSP build complete]
+[Cont build complete]

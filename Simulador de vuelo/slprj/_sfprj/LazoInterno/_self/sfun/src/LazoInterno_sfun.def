@@ -1,0 +1,3 @@
+LIBRARY LazoInterno_sfun.mexw64
+EXPORTS
+mexFunction

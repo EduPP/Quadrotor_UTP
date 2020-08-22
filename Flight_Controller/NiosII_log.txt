@@ -1,0 +1,160 @@
+Altera SOPC Builder Version 11.11 Build 216
+Copyright (c) 1999-2009 Altera Corporation.  All rights reserved.
+
+
+No .sopc_builder configuration file(!)
+# 2016.08.30 13:10:53 (*) mk_custom_sdk starting
+# 2016.08.30 13:10:53 (*) Reading project D:/Proyectos/Proyectos_FPGA/AlteraProjects/Quad_100Mhz/NiosII.ptf.
+
+# 2016.08.30 13:10:55 (*) Finding all CPUs
+
+# 2016.08.30 13:10:55 (*) Finding all available components
+
+# 2016.08.30 13:10:55 (*) Reading D:/Proyectos/Proyectos_FPGA/AlteraProjects/Quad_100Mhz/.sopc_builder/install.ptf
+
+# 2016.08.30 13:10:55 (*) Found 63 components
+
+# 2016.08.30 13:10:57 (*) Finding all peripherals
+
+# 2016.08.30 13:10:57 (*) Finding software components
+
+# 2016.08.30 13:10:59 (*) (Legacy SDK Generation Skipped)
+# 2016.08.30 13:10:59 (*) (All TCL Script Generation Skipped)
+# 2016.08.30 13:10:59 (*) (No Libraries Built)
+# 2016.08.30 13:10:59 (*) (Contents Generation Skipped)
+# 2016.08.30 13:10:59 (*) mk_custom_sdk finishing
+
+# 2016.08.30 13:10:59 (*) Starting generation for system: NiosII.
+
+.
+.
+.
+.
+.
+.
+..
+..
+...
+..
+.
+..
+..
+.
+.
+...
+..
+..
+..
+.
+
+# 2016.08.30 13:11:04 (*) Running Generator Program for cpu
+
+# 2016.08.30 13:11:09 (*) Starting Nios II generation
+# 2016.08.30 13:11:09 (*)   Checking for plaintext license.
+# 2016.08.30 13:11:11 (*)   Plaintext license not found.
+# 2016.08.30 13:11:11 (*)   Checking for encrypted license (non-evaluation).
+# 2016.08.30 13:11:13 (*)   Encrypted license found.  SOF will not be time-limited.
+# 2016.08.30 13:11:13 (*)   Getting CPU configuration settings
+# 2016.08.30 13:11:13 (*)   Elaborating CPU configuration settings
+# 2016.08.30 13:11:13 (*)   Creating all objects for CPU
+
+# 2016.08.30 13:11:13 (*)     Testbench
+# 2016.08.30 13:11:14 (*)     Instruction decoding
+# 2016.08.30 13:11:14 (*)       Instruction fields
+# 2016.08.30 13:11:15 (*)       Instruction decodes
+# 2016.08.30 13:11:18 (*)       Signals for RTL simulation waveforms
+# 2016.08.30 13:11:18 (*)       Instruction controls
+# 2016.08.30 13:11:18 (*)     Pipeline frontend
+# 2016.08.30 13:11:19 (*)     Pipeline backend
+# 2016.08.30 13:11:32 (*)   Generating HDL from CPU objects
+# 2016.08.30 13:12:03 (*)   Creating encrypted HDL
+
+# 2016.08.30 13:12:15 (*) Done Nios II generation
+
+# 2016.08.30 13:12:17 (*) Running Generator Program for sdram
+
+# 2016.08.30 13:12:24 (*) Running Generator Program for jtag_uart
+
+# 2016.08.30 13:12:29 (*) Running Generator Program for sysid
+
+# 2016.08.30 13:12:34 (*) Running Generator Program for sample_time
+
+# 2016.08.30 13:12:38 (*) Running Generator Program for epcs_flash_controller
+
+# 2016.08.30 13:12:44 (*) Running Generator Program for out_test
+
+# 2016.08.30 13:12:48 (*) Running Generator Program for entrada_ac_eje_X
+
+# 2016.08.30 13:12:53 (*) Running Generator Program for entrada_ac_eje_Y
+
+# 2016.08.30 13:12:57 (*) Running Generator Program for entrada_ac_eje_Z
+
+# 2016.08.30 13:13:02 (*) Running Generator Program for entrada_ma_eje_X
+
+# 2016.08.30 13:13:06 (*) Running Generator Program for entrada_ma_eje_Y
+
+# 2016.08.30 13:13:10 (*) Running Generator Program for entrada_ma_eje_Z
+
+# 2016.08.30 13:13:13 (*) Running Generator Program for entrada_gy_eje_X
+
+# 2016.08.30 13:13:17 (*) Running Generator Program for entrada_gy_eje_Y
+
+# 2016.08.30 13:13:19 (*) Running Generator Program for entrada_gy_eje_Z
+
+# 2016.08.30 13:13:23 (*) Running Generator Program for entrada_temp
+
+# 2016.08.30 13:13:27 (*) Running Generator Program for PWM_1
+
+# 2016.08.30 13:13:31 (*) Running Generator Program for PWM_2
+
+# 2016.08.30 13:13:35 (*) Running Generator Program for PWM_3
+
+# 2016.08.30 13:13:39 (*) Running Generator Program for PWM_4
+
+# 2016.08.30 13:13:42 (*) Running Generator Program for uart_gps
+
+# 2016.08.30 13:13:47 (*) Running Generator Program for uart_xbee
+
+# 2016.08.30 13:13:52 (*) Running Generator Program for duty_1
+
+# 2016.08.30 13:13:56 (*) Running Generator Program for duty_2
+
+# 2016.08.30 13:13:59 (*) Running Generator Program for duty_3
+
+# 2016.08.30 13:14:03 (*) Running Generator Program for duty_4
+
+# 2016.08.30 13:14:07 (*) Running Generator Program for timer_ONOF
+
+# 2016.08.30 13:14:10 (*) Running Generator Program for data_tx
+
+# 2016.08.30 13:14:14 (*) Running Generator Program for NiosII_clock_0
+
+# 2016.08.30 13:14:19 (*) Running Generator Program for NiosII_clock_1
+
+# 2016.08.30 13:14:24 (*) Running Generator Program for NiosII_clock_2
+
+.
+
+
+# 2016.08.30 13:14:29 (*) Running Test Generator Program for sdram
+
+# 2016.08.30 13:14:31 (*) Making arbitration and system (top) modules.
+
+# 2016.08.30 13:15:24 (*) Generating Quartus symbol for top level: NiosII
+
+# 2016.08.30 13:15:24 (*) Symbol D:/Proyectos/Proyectos_FPGA/AlteraProjects/Quad_100Mhz/NiosII.bsf already exists, no need to regenerate
+# 2016.08.30 13:15:24 (*) Creating command-line system-generation script: D:/Proyectos/Proyectos_FPGA/AlteraProjects/Quad_100Mhz/NiosII_generation_script
+
+# 2016.08.30 13:15:25 (*) Running setup for HDL simulator: modelsim
+
+
+# 2016.08.30 13:15:26 (*) Completed generation for system: NiosII.
+# 2016.08.30 13:15:26 (*) THE FOLLOWING SYSTEM ITEMS HAVE BEEN GENERATED:
+  SOPC Builder database : D:/Proyectos/Proyectos_FPGA/AlteraProjects/Quad_100Mhz/NiosII.ptf 
+  System HDL Model : D:/Proyectos/Proyectos_FPGA/AlteraProjects/Quad_100Mhz/NiosII.vhd 
+  System Generation Script : D:/Proyectos/Proyectos_FPGA/AlteraProjects/Quad_100Mhz/NiosII_generation_script 
+
+# 2016.08.30 13:15:26 (*) SUCCESS: SYSTEM GENERATION COMPLETED.
+
+
+Press 'Exit' to exit.

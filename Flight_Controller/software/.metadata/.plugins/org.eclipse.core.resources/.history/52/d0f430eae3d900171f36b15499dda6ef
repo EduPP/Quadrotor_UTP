@@ -1,0 +1,463 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <math.h>
+#include "Kalman.h"
+#include "header.h"
+#include <alt_types.h>
+#include <sys/alt_irq.h>
+#include "system.h"
+#include "altera_avalon_pio_regs.h"
+#include "altera_avalon_timer.h"
+#include "altera_avalon_timer_regs.h"
+#include "altera_avalon_uart_regs.h"
+
+/******************** Funciones Prototipo ********************************/
+void init_uart();
+void Config_PIDs(void);
+void AlgoritmoControl(const float M[4][4]);
+void SetPoints();
+void Data_to_GCS();
+void SetPIDs();
+
+int restart = 0,fin = 0;
+int time = 0;
+int alt_anterior = 0;
+float sp_roll=0, sp_pitch=0, sp_yaw=0, sp_altura=0 ;
+float sp_wx = 0,sp_wy = 0,sp_wz = 0; //sp para velocidades angulares
+
+/****** Variables de trama serial ---  GCS *******/
+int flag_trama_imu = 0, cont_recv;
+int recepciona_trama_imu = 0;
+int trama_valida = 0;
+const int numbytes = 16;//numero de bytes de recepcion datosX(anchopalabra)--> 4*4
+int opcion = 10;
+const int numsendtrama = 10; // numero de datos tipo float de envio
+float tx_trama[10]; // trama de envio 13 datos (13x4 = 52 bytes)
+/******************************************************************************/
+/****** |roll|pitch|yaw|wx|wy|wz|sp_roll|sp_pitch|sp_wz|Opcion|P|I|D|  ********/
+/******************************************************************************/
+
+/******Variables de mando RF**********/
+unsigned short RF1=0;
+unsigned short RF2=0;
+unsigned short RF3=0;
+unsigned short RF4=0;
+float temp;
+/***** Variables de controlador *****/
+/**Lazo Externo***/
+float P_roll = 6;
+float P_pitch = 6;//keda esta P 21-11-15
+float P_yaw = 4;
+float I_pitch = 0.5;//keda este integrador  21-11-15
+float I_roll = 0.5;
+//const float I_yaw
+float KI_pitch=0;
+float KI_roll=0;
+float KI_yaw = 0;
+float error[3] = {0,0,0},errSum[3]={0,0,0},at=0.007;
+float sp_interno[3];
+/****Lazo Interno****/
+qPID PID_Wx;
+qPID PID_Wy;
+qPID PID_Wz;
+
+float PWM[4];
+float U[4]; //Señales de control
+float W[4]; //velocidades angulares
+/*****************Constantes********************/
+const float Kt = 0.8;// para  22.3N da 60% de pwm's necesario para hovering
+const float Ktp = 0.4;
+const  float Km = 0.2;
+
+int flag=0;
+unsigned int initpwms = 0;
+int sleep = 1;
+int contsleep = 0;
+typedef enum{
+	SLEEP=0,
+	ACTITUD
+} Estados;
+Estados Estados_Quad = SLEEP;
+
+/******* Interrupciones ********/
+void handle_uart_interrupts(void* context, unsigned int id);
+void isr_handler_timer(void* context, alt_u32 id){ //Timer de 10ms de muestreo
+        flag = 1;
+        IOWR_ALTERA_AVALON_TIMER_STATUS(SAMPLE_TIME_BASE, 0); // Clear the interrupt flag
+}
+
+void isr_handler_TimerONOF(void* context, alt_u32 id){ //Timer de 100ms para prendido o apagado del rotores
+	
+	if(sp_pitch > 20*pi/180 && sp_roll < -20*pi/180 && sp_altura < 0.5 && sp_wz < -120*pi/180)
+	{
+			contsleep++;
+			if(contsleep>35) // para 5 segundos
+			{
+				contsleep=0;
+				if(sleep>0)
+					sleep = 0;
+				else
+					sleep = 1;
+			} 
+				
+	}else{
+		contsleep--;
+		if(contsleep<0)
+			contsleep=0;
+	}
+		
+    IOWR_ALTERA_AVALON_TIMER_STATUS(TIMER_ONOF_BASE, 0); // Clear the interrupt flag
+}
+
+ int main (void)
+ {
+	 	const float M[4][4] = {{ Kt, 0,  -Ktp, Km },
+	 			      	  	  {  Kt, Ktp, 0,  -Km },
+	 			      	  	  {  Kt, 0,	  Ktp, Km },
+	 			      	  	  {  Kt,-Ktp, 0,  -Km }};
+
+   IOWR_ALTERA_AVALON_TIMER_CONTROL(SAMPLE_TIME_BASE, 7);
+   alt_irq_register(SAMPLE_TIME_IRQ, 0, isr_handler_timer);
+   IOWR_ALTERA_AVALON_TIMER_CONTROL(TIMER_ONOF_BASE, 7);
+   alt_irq_register(TIMER_ONOF_IRQ, 0, isr_handler_TimerONOF);
+   //init_uart(); //inicializamos interrupciones UART
+   Config_PIDs();
+   int cont=4;
+
+   IOWR(PWM_1_BASE, 0, 400);
+   IOWR(PWM_2_BASE, 0, 400);
+   IOWR(PWM_3_BASE, 0, 400);
+   IOWR(PWM_4_BASE, 0, 400);
+
+   while(time<500){
+	   if(flag){
+		flag = 0;
+		time++;
+	    IOWR(PWM_1_BASE, 0, initpwms);
+		IOWR(PWM_2_BASE, 0, initpwms);
+		IOWR(PWM_3_BASE, 0, initpwms);
+		IOWR(PWM_4_BASE, 0, initpwms);
+		initpwms+=5;
+	   }
+   }
+   time = 0;
+
+   while(1)
+   {
+     if(flag)
+     {
+    	
+       flag=0;
+       FiltroKalmanExtendido();
+       SetPoints(); //setpoints por radiocontrol
+       //printf("%.1f %.1f %.1f\n",roll,pitch,YAW);
+       //printf("%.2f %.2f %.2f\n",sp_roll,sp_pitch,sp_wz);
+	   switch(Estados_Quad){
+		   
+		   case SLEEP:
+				if(sleep<=0){
+					Estados_Quad = ACTITUD;
+				}
+				IOWR(PWM_1_BASE, 0, 6400);
+			    IOWR(PWM_2_BASE, 0, 6400);
+			    IOWR(PWM_3_BASE, 0, 6400);
+			    IOWR(PWM_4_BASE, 0, 6400);
+		   break;
+		   case ACTITUD:
+				if(sleep){
+					Estados_Quad = SLEEP;
+				}
+				AlgoritmoControl(M);
+		   break;
+	   }
+       
+	  if(cont>=4){
+	   cont = 0;
+	   Data_to_GCS();
+	   SendTrama(tx_trama,numsendtrama);
+	    //printf("%.1f %.1f %.1f %.1f %.1f %.1f\n",roll,pitch,wz,sp_roll,sp_pitch,sp_wz);
+	   }
+        cont++;
+        time++;
+     }
+   }
+
+   IOWR(PWM_1_BASE, 0, 6400);
+   IOWR(PWM_2_BASE, 0, 6400);
+   IOWR(PWM_3_BASE, 0, 6400);
+   IOWR(PWM_4_BASE, 0, 6400);
+  return 0;
+ }
+
+ //Inicializar UART
+ void init_uart() {
+ 	int context;
+ 	//escribir en el registro de control para habilitar interrupt por read ready
+ 	IOWR_ALTERA_AVALON_UART_CONTROL(UART_XBEE_BASE, ALTERA_AVALON_UART_CONTROL_RRDY_MSK);
+ 	// install UART ISR
+ 	alt_irq_register(UART_XBEE_IRQ, &context, handle_uart_interrupts);
+ }
+
+ void Config_PIDs(void)
+ {
+	// Configure settings
+	PID_Wx.AntiWindup = ENABLED;
+	PID_Wx.Bumpless = ENABLED;
+	PID_Wx.Integrador = ENABLED;
+	PID_Wy.AntiWindup = ENABLED;
+	PID_Wy.Bumpless = ENABLED;
+	PID_Wy.Integrador = ENABLED;
+	PID_Wz.AntiWindup = ENABLED;
+	PID_Wz.Bumpless = ENABLED;
+	PID_Wz.Integrador = ENABLED;
+
+	// Establecemos modo automatico (sino estara en modo manual)
+	PID_Wx.Mode = AUTOMATIC;
+	PID_Wy.Mode = AUTOMATIC;
+	PID_Wz.Mode = AUTOMATIC;
+
+	// Configure de output limits for clamping
+	PID_Wx.Tt = 1;
+	PID_Wy.Tt = 1;
+	PID_Wz.Tt = 0.1;
+	PID_Wx.OutputMax = 1;
+	PID_Wx.OutputMin = -1;
+	PID_Wy.OutputMax = 1;
+	PID_Wy.OutputMin = -1;
+	PID_Wz.OutputMax = 1;
+	PID_Wz.OutputMin = -1;
+
+	// Seteamos la velocidad con la que corre los PID's
+	PID_Wx.Ts = 0.007;
+	PID_Wy.Ts = 0.007;
+	PID_Wz.Ts = 0.007;
+
+	// More settings
+	PID_Wx.b = 1.0;
+	PID_Wx.c = 1.0;
+	PID_Wy.b = 1.0;
+	PID_Wy.c = 1.0;
+	PID_Wz.b = 1.0;
+	PID_Wz.c = 1.0;
+
+	// Inicializamos los controladores
+	qPID_Init(&PID_Wx);
+	qPID_Init(&PID_Wy);
+	qPID_Init(&PID_Wz);
+
+// Parametros sintonizados de los controladores
+	PID_Wx.K = 0.145;
+	PID_Wx.Ti = 4.48;
+	PID_Wx.Td = 0.1322;
+	PID_Wx.Nd = 20;
+
+	PID_Wy.K = 0.14;//->
+	PID_Wy.Ti = 7.77;//
+	PID_Wy.Td = 0.05;
+	PID_Wy.Nd = 20;//-> 187 en matlab
+
+	PID_Wz.K = 2.921; // 23-11
+	PID_Wz.Ti = 4.0; // 23-11
+	PID_Wz.Td = 0.0;
+	PID_Wz.Nd = 10.0;
+ }
+
+ // Algoritmo de Control en Cascada
+ void AlgoritmoControl(const float M[4][4])
+ {
+ int i=0,j=0;
+ /**************** Controlador Lazo Externo ******************/
+	error[0] = sp_roll-roll_rad;
+	sp_interno[0] = error[0]*P_roll + KI_roll;
+	errSum[0] = errSum[0] + error[0]*at;
+	KI_roll = I_roll*errSum[0];
+	sp_wx = sp_interno[0];
+
+	error[1] = sp_pitch-pitch_rad;
+	sp_interno[1] = error[1]*P_pitch + KI_pitch;
+	errSum[1] = errSum[1] + error[1]*at;
+	KI_pitch = I_pitch*errSum[1];
+	sp_wy = sp_interno[1];
+/**************************************************************/
+/*************** Controlador Lazo Interno *********************/
+	 U[0] = sp_altura;
+	 U[1] = qPID_Procees(&PID_Wx, sp_wx,wx);
+	 U[2] = qPID_Procees(&PID_Wy, sp_wy,wy);
+	 U[3] = qPID_Procees(&PID_Wz, sp_wz,wz);
+
+	//Señal de control to PWM%
+	 for (i = 0; i < 4; i++)
+		 W[i] = M[i][0]*U[0] + M[i][1]*U[1] + M[i][2]*U[2] + M[i][3]*U[3];
+
+  //Conversion PWM% to PWM's		//10600 punto de operacion aprox (supuestamente para 14 bits)
+	 PWM[0] = 5600*W[0] + 6800;		//motor 1 arranca en 7532 hasta 12400 aprox (suposiciones)
+	 PWM[1] = 5600*W[1] + 6800;
+	 PWM[2] = 5600*W[2] + 6800;
+	 PWM[3] = 5600*W[3] + 6800;//6552 - 13104 -> rango de operacion de 1ms a 2ms para 400Hz
+
+	 for(j=0;j<4;j++){
+		if(PWM[j]<6400)
+			PWM[j]=6400;
+		else if(PWM[j]>13200)
+			PWM[j]=13200;
+		}
+
+	 IOWR(PWM_1_BASE, 0, PWM[0]);
+     IOWR(PWM_2_BASE, 0, PWM[1]);
+     IOWR(PWM_3_BASE, 0, PWM[2]);
+     IOWR(PWM_4_BASE, 0, PWM[3]);
+ }
+
+ void SetPoints()
+ {
+	RF1 = IORD_ALTERA_AVALON_PIO_DATA(DUTY_1_BASE); //ROLL
+	RF2 = IORD_ALTERA_AVALON_PIO_DATA(DUTY_2_BASE); //THROTLE
+	RF3 = IORD_ALTERA_AVALON_PIO_DATA(DUTY_3_BASE); //PITCH
+	RF4 = IORD_ALTERA_AVALON_PIO_DATA(DUTY_4_BASE); // WZ/YAW
+
+	//printf("%d %d %d %d\n",RF1,RF2,RF3,RF4);
+	if(RF1 <2100 || RF1>3850) //esta fuera del rango de receptor RF entonces debe estar apagado
+	   RF1 = 2966;			 //seteamos a valor centro para sp_roll = 0
+	if(RF3 <2100 || RF3>3850) //esta fuera del rango de receptor RF entonces debe estar apagado
+		RF3 = 2970;			 //seteamos a valor centro para sp_pitch = 0
+	if(RF4 <2100 || RF4>3850 || (RF4>2920 && RF4<2980)) //fuera de rango y filtro
+		RF4 = 2955;			 //seteamos a valor centro para sp_wz = 0
+
+    float aux = RF2*0.0003628447025-0.3762699565; //ecuacion para throtle (0.5-1) -> 40% - 80%
+	int temp = (int)(aux*200);
+	sp_altura = (float)((temp+alt_anterior)/2)/200;
+	alt_anterior = (int)(sp_altura*200);
+	sp_altura = sp_altura + 0.005;
+
+	if(RF2 < 2415 || RF2>3850)  //fuera de rango y deshabilitar integradores en los valores de RF menores
+	{
+	   sp_altura = -0.25; //este valor asegura que los motores no se prenderan
+	   //wz = 0;
+	   PID_Wy.Integrador = DISABLED;
+	   PID_Wx.Integrador = DISABLED;
+	   PID_Wz.Integrador = DISABLED;
+	   errSum[0] = 0; errSum[1] = 0; errSum[2]=0; //deshabilito terminos integrales de lazo externo
+	}
+	else {
+	   PID_Wy.Integrador = ENABLED;
+	   PID_Wx.Integrador = ENABLED;
+	   PID_Wz.Integrador = ENABLED;
+	}
+
+	//sp_roll = roundf(RF1*0.0299 - 88.6834); //ecuacion para setpoint de ROLL (-25 a 25 degrees)
+	sp_roll = roundf(RF1*0.0299 - 88.6834)+0.5; //ecuacion corregida para desviacion 0.5
+	sp_pitch = (-1)*roundf(RF3*0.0298 - 88.5060)-1.0; //ecuacion negativay corregida con desviacion 1°
+
+	//sp_wx = roundf(RF1*0.060386 - 178.8); //ecuacion para sp de wx (-50 a 50 deg/sec)
+	//sp_wy = roundf(RF3*0.060386 - 179.1); //ecuacion para sp de wy (-50 a 50 deg/sec)
+	sp_wz = roundf(RF4*0.1788 - 528.3540); //ecuacion para SP de WZ (-150 a 150 degress/s)
+	//sp_wz = 0;
+
+//conversion de SP de grados a radianes
+	sp_roll = sp_roll*pi/180;
+	sp_pitch = sp_pitch*pi/180;
+	//sp_wx = sp_wx*pi/180;
+	//sp_wy = sp_wy*pi/180;
+	sp_wz = sp_wz*pi/180;
+ }
+
+ void Data_to_GCS(){
+	tx_trama[0] = roll;
+	tx_trama[1] = pitch;
+	tx_trama[2] = YAW;
+	tx_trama[3] = wx*180/pi;
+	tx_trama[4] = wy*180/pi;
+	tx_trama[5] = wz*180/pi;
+	tx_trama[6] = sp_roll*180/pi;
+	tx_trama[7] = sp_pitch*180/pi;
+	tx_trama[8] = sp_wz*180/pi;
+	tx_trama[9] = (float)time/100.0;
+//	switch(opcion){
+//	case 0: tx_trama[10] = PID_Wx.K; // WX
+//			tx_trama[11] = PID_Wx.Ti;
+//			tx_trama[12] = PID_Wx.Td; break;
+//	case 1: tx_trama[10] = PID_Wx.K;
+//			tx_trama[11] = PID_Wx.Ti;
+//			tx_trama[12] = PID_Wx.Td; break;
+//	case 2: tx_trama[10] = PID_Wy.K; // WY
+//			tx_trama[11] = PID_Wy.Ti;
+//			tx_trama[12] = PID_Wy.Td; break;
+//	case 3: tx_trama[10] = PID_Wz.K;  //WZ
+//			tx_trama[11] = PID_Wz.Ti;
+//			tx_trama[12] = PID_Wz.Td; break;
+//	case 4: tx_trama[10] = P_roll;
+//			tx_trama[11] = I_roll;
+//			tx_trama[12] = 0.f;  break;
+//	case 5: tx_trama[10] = P_roll;
+//			tx_trama[11] = I_roll;
+//			tx_trama[12] = 0.f;  break;
+//	case 6: tx_trama[10] = P_pitch;
+//			tx_trama[11] = I_pitch;
+//			tx_trama[12] = 0.f; break;
+//	case 7: tx_trama[10] = 0.f;
+//			tx_trama[11] = 0.f;
+//			tx_trama[12] = 0.f; break;
+//	default : tx_trama[10] = 0.f;
+//			  tx_trama[11] = 0.f;
+//			  tx_trama[12] = 0.f;
+//			  break;
+//	}
+ }
+
+ void SetPIDs(){
+	 switch(opcion){
+	 	case 0: PID_Wx.K = recvtrama.imu[1]; // WX
+	 			PID_Wx.Ti = recvtrama.imu[2];
+	 			PID_Wx.Td = recvtrama.imu[3];
+	 			break;
+	 	case 1: PID_Wx.K = recvtrama.imu[1];
+	 			PID_Wx.Ti = recvtrama.imu[2];
+	 			PID_Wx.Td = recvtrama.imu[3];
+	 			break;
+	 	case 2: PID_Wy.K = recvtrama.imu[1]; // WY
+	 			PID_Wy.Ti = recvtrama.imu[2];
+	 			PID_Wy.Td = recvtrama.imu[3];
+	 			break;
+	 	case 3: PID_Wz.K = recvtrama.imu[1];  //WZ
+	 			PID_Wz.Ti = recvtrama.imu[2];
+	 			PID_Wz.Td = recvtrama.imu[3];
+	 			break;
+	 	case 4: P_roll = recvtrama.imu[1];
+	 			I_roll = recvtrama.imu[2];
+	 			break;
+	 	case 5: P_roll = recvtrama.imu[1];
+	 			I_roll = recvtrama.imu[2];
+	 			break;
+	 	case 6: P_pitch  = recvtrama.imu[1];
+	 			I_pitch  = recvtrama.imu[2];
+	 			break;
+	 	case 7 : restart = 1; break;
+	 	default  : fin  = 1; break;
+	 	}
+ }
+ /*** Interrupciones ***/
+ void handle_uart_interrupts(void* context, unsigned int id) {
+
+ 	int sr = IORD_ALTERA_AVALON_UART_STATUS(UART_XBEE_BASE);
+
+ 	if (sr & ALTERA_AVALON_UART_STATUS_RRDY_MSK) {
+ 		if ((IORD_ALTERA_AVALON_UART_RXDATA(UART_XBEE_BASE) == 90)&& (trama_valida == 1)) {//'Z'
+ 			recepciona_trama_imu = 0;
+ 			trama_valida = 0;
+ 			if (cont_recv == numbytes) { //16 bytes de trama sensores
+ 				flag_trama_imu = 1;
+ 			}
+ 			cont_recv = 0;
+ 		}
+ 		if (recepciona_trama_imu) {
+ 			recvtrama.bytes_imu[cont_recv]=IORD_ALTERA_AVALON_UART_RXDATA(UART_XBEE_BASE);
+ 			cont_recv++;
+ 		}
+ 		if ((IORD_ALTERA_AVALON_UART_RXDATA(UART_XBEE_BASE) == 88)&& (recepciona_trama_imu == 0)) { //'X'
+ 			recepciona_trama_imu = 1;
+ 			trama_valida = 1;
+ 			cont_recv = 0;
+ 		}
+ 	}
+ 	IOWR_ALTERA_AVALON_UART_STATUS(UART_XBEE_BASE, 0);
+ }

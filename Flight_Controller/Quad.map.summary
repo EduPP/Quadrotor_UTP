@@ -1,0 +1,14 @@
+Analysis & Synthesis Status : Successful - Tue Aug 30 13:20:50 2016
+Quartus II 32-bit Version : 11.1 Build 216 11/23/2011 SP 1 SJ Web Edition
+Revision Name : Quad
+Top-level Entity Name : Quad
+Family : Cyclone IV E
+Total logic elements : 9,996
+    Total combinational functions : 7,349
+    Dedicated logic registers : 5,701
+Total registers : 5701
+Total pins : 63
+Total virtual pins : 0
+Total memory bits : 135,187
+Embedded Multiplier 9-bit elements : 11
+Total PLLs : 1

@@ -1,0 +1,47 @@
+# clk_50
+# cpu
+set_global_assignment -name SDC_FILE [file join $::quartus(qip_path) cpu.sdc]
+set_global_assignment -name SOURCE_FILE [file join $::quartus(qip_path) cpu.ocp]
+# sdram
+# jtag_uart
+# sysid
+# sample_time
+# cpu_altera_nios_custom_instr_floating_point_inst
+set_global_assignment -name TCL_FILE [file join $::quartus(ip_rootpath) altera/nios2_ip/altera_nios_custom_instr_floating_point_qsys/fpoint_qsys_hw.tcl]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(ip_rootpath) altera/nios2_ip/altera_nios_custom_instr_floating_point_qsys/fpoint_wrapper.v]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(ip_rootpath) altera/nios2_ip/altera_nios_custom_instr_floating_point_qsys/fpoint_qsys.v]
+set_global_assignment -name VERILOG_FILE [file join $::quartus(ip_rootpath) altera/nios2_ip/altera_nios_custom_instr_floating_point_qsys/fpoint_hw_qsys.v]
+set_global_assignment -name VHDL_FILE [file join $::quartus(qip_path) cpu_altera_nios_custom_instr_floating_point_inst.vhd]
+# epcs_flash_controller
+# out_test
+# pll
+set_global_assignment -name TCL_FILE [file join $::quartus(ip_rootpath) altera/sopc_builder_ip/altera_avalon_altpll/altera_avalon_altpll_hw.tcl]
+set_global_assignment -name VHDL_FILE [file join $::quartus(qip_path) pll.vhd]
+# entrada_ac_eje_X
+# entrada_ac_eje_Y
+# entrada_ac_eje_Z
+# entrada_ma_eje_X
+# entrada_ma_eje_Y
+# entrada_ma_eje_Z
+# entrada_gy_eje_X
+# entrada_gy_eje_Y
+# entrada_gy_eje_Z
+# entrada_temp
+# PWM_1
+# PWM_2
+# PWM_3
+# PWM_4
+# uart_gps
+# uart_xbee
+# duty_1
+# duty_2
+# duty_3
+# duty_4
+# timer_ONOF
+# data_tx
+# null
+set_global_assignment -name SDC_FILE [file join $::quartus(ip_rootpath) altera/sopc_builder_ip/altera_avalon_clock_adapter/altera_avalon_clock_adapter.sdc]
+set_global_assignment -name SOPC_BUILDER_SIGNATURE_ID "4CBB5841803500000156DCA3113A"
+set_global_assignment -entity "NiosII" -name IP_TOOL_NAME "sopc"
+set_global_assignment -entity "NiosII" -name IP_TOOL_VERSION "11.1sp1"
+set_global_assignment -entity "NiosII" -name IP_TOOL_ENV "sopc"

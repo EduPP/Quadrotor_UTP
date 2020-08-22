@@ -1,0 +1,44 @@
+CC     = "D:\Matlab2013a\sys\lcc64\lcc64\bin\lcc64.exe"
+LD     = "D:\Matlab2013a\sys\lcc64\lcc64\bin\lcclnk64.exe"
+LIBCMD = "D:\Matlab2013a\sys\lcc64\lcc64\bin\lcclib64.exe"
+CFLAGS = -dll -noregistrylookup  -c -Zp8 -DLCC_WIN64 -DMATLAB_MEX_FILE -DMX_COMPAT_32 -nodeclspec 
+LDFLAGS = -s -dll -L"D:\Matlab2013a\sys\lcc64\lcc64\lib64" -entry LibMain -map sfun.map 
+LIBFLAGS = 
+
+OBJECTS = \
+	"sim_UAV_2_sfun.obj"\
+	"c1_sim_UAV_2.obj"\
+	"c2_sim_UAV_2.obj"\
+	"c3_sim_UAV_2.obj"\
+	"sim_UAV_2_sfun_registry.obj"\
+	"lccstub.obj"\
+	"sim_UAV_2_sfun.def"\
+	"D:\Matlab2013a\stateflow\c\mex\lib\win64\sfc_mexlcc64.lib"\
+	"D:\Matlab2013a\stateflow\c\debugger\lib\win64\sfc_debuglcc64.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libmwblas.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libmx.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libmex.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libmat.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libfixedpoint.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libut.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libmwmathutil.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libemlrt.lib"\
+	"D:\Matlab2013a\lib\win64\libippmwipt.lib"\
+
+INCLUDE_PATH= -I"D:\Matlab2013a\sys\lcc64\lcc64\include64"  -I"D:\Matlab2013a\extern\include"  -I"D:\Matlab2013a\simulink\include"  -I"D:\Matlab2013a\rtw\c\src"  -I"D:\Matlab2013a\stateflow\c\mex\include"  -I"D:\Matlab2013a\stateflow\c\debugger\include"  -I"D:\Matlab2013a\toolbox\stateflow\src\sf_runtime\export\include\sf_runtime" 
+ 
+
+sim_UAV_2_sfun.mexw64 : $(MAKEFILE) $(OBJECTS)
+	$(LD) $(LDFLAGS) -o sim_UAV_2_sfun.mexw64 @sim_UAV_2_sfun.lmko
+sim_UAV_2_sfun.obj :	"sim_UAV_2_sfun.c"
+	$(CC) $(CFLAGS) $(INCLUDE_PATH) "sim_UAV_2_sfun.c"
+c1_sim_UAV_2.obj :	"c1_sim_UAV_2.c"
+	$(CC) $(CFLAGS) $(INCLUDE_PATH) "c1_sim_UAV_2.c"
+c2_sim_UAV_2.obj :	"c2_sim_UAV_2.c"
+	$(CC) $(CFLAGS) $(INCLUDE_PATH) "c2_sim_UAV_2.c"
+c3_sim_UAV_2.obj :	"c3_sim_UAV_2.c"
+	$(CC) $(CFLAGS) $(INCLUDE_PATH) "c3_sim_UAV_2.c"
+sim_UAV_2_sfun_registry.obj :	"sim_UAV_2_sfun_registry.c"
+	$(CC) $(CFLAGS) $(INCLUDE_PATH) "sim_UAV_2_sfun_registry.c"
+lccstub.obj :	"D:\Matlab2013a\sys\lcc64\lcc64\mex\lccstub.c"
+	$(CC) $(CFLAGS) $(INCLUDE_PATH) "D:\Matlab2013a\sys\lcc64\lcc64\mex\lccstub.c"

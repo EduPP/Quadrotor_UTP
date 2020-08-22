@@ -1,0 +1,47 @@
+CC     = "D:\Matlab2013a\sys\lcc64\lcc64\bin\lcc64.exe"
+LD     = "D:\Matlab2013a\sys\lcc64\lcc64\bin\lcclnk64.exe"
+LIBCMD = "D:\Matlab2013a\sys\lcc64\lcc64\bin\lcclib64.exe"
+CFLAGS = -dll -noregistrylookup  -c -Zp8 -DLCC_WIN64 -DMATLAB_MEX_FILE -DMX_COMPAT_32 -nodeclspec 
+LDFLAGS = -s -dll -L"D:\Matlab2013a\sys\lcc64\lcc64\lib64" -entry LibMain -map sfun.map 
+LIBFLAGS = 
+
+OBJECTS = \
+	"LazoInterno_sfun.obj"\
+	"c1_LazoInterno.obj"\
+	"c2_LazoInterno.obj"\
+	"c3_LazoInterno.obj"\
+	"c8_LazoInterno.obj"\
+	"LazoInterno_sfun_registry.obj"\
+	"lccstub.obj"\
+	"LazoInterno_sfun.def"\
+	"D:\Matlab2013a\stateflow\c\mex\lib\win64\sfc_mexlcc64.lib"\
+	"D:\Matlab2013a\stateflow\c\debugger\lib\win64\sfc_debuglcc64.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libmwblas.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libmx.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libmex.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libmat.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libfixedpoint.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libut.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libmwmathutil.lib"\
+	"D:\Matlab2013a\extern\lib\win64\microsoft\libemlrt.lib"\
+	"D:\Matlab2013a\lib\win64\libippmwipt.lib"\
+
+INCLUDE_PATH= -I"D:\Matlab2013a\sys\lcc64\lcc64\include64"  -I"D:\Matlab2013a\extern\include"  -I"D:\Matlab2013a\simulink\include"  -I"D:\Matlab2013a\rtw\c\src"  -I"D:\Matlab2013a\stateflow\c\mex\include"  -I"D:\Matlab2013a\stateflow\c\debugger\include"  -I"D:\Matlab2013a\toolbox\stateflow\src\sf_runtime\export\include\sf_runtime" 
+ 
+
+LazoInterno_sfun.mexw64 : $(MAKEFILE) $(OBJECTS)
+	$(LD) $(LDFLAGS) -o LazoInterno_sfun.mexw64 @LazoInterno_sfun.lmko
+LazoInterno_sfun.obj :	"LazoInterno_sfun.c"
+	$(CC) $(CFLAGS) $(INCLUDE_PATH) "LazoInterno_sfun.c"
+c1_LazoInterno.obj :	"c1_LazoInterno.c"
+	$(CC) $(CFLAGS) $(INCLUDE_PATH) "c1_LazoInterno.c"
+c2_LazoInterno.obj :	"c2_LazoInterno.c"
+	$(CC) $(CFLAGS) $(INCLUDE_PATH) "c2_LazoInterno.c"
+c3_LazoInterno.obj :	"c3_LazoInterno.c"
+	$(CC) $(CFLAGS) $(INCLUDE_PATH) "c3_LazoInterno.c"
+c8_LazoInterno.obj :	"c8_LazoInterno.c"
+	$(CC) $(CFLAGS) $(INCLUDE_PATH) "c8_LazoInterno.c"
+LazoInterno_sfun_registry.obj :	"LazoInterno_sfun_registry.c"
+	$(CC) $(CFLAGS) $(INCLUDE_PATH) "LazoInterno_sfun_registry.c"
+lccstub.obj :	"D:\Matlab2013a\sys\lcc64\lcc64\mex\lccstub.c"
+	$(CC) $(CFLAGS) $(INCLUDE_PATH) "D:\Matlab2013a\sys\lcc64\lcc64\mex\lccstub.c"

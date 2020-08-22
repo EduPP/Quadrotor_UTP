@@ -1,0 +1,282 @@
+-----------------------------------------------------------
+-- SBAController.vhd
+--
+-- Based upon SBA Master Controller Version 1.47 20110331
+-- 16 bits Data Interface,
+-- SBA Master System Controller
+--
+-- (c) Miguel A. Risco Castillo
+-- email: mrisco@accesus.com
+-- sba web page: http://sba.accesus.com
+--
+-- Notes:
+-- v1.47
+-- Move step, ret and adr variables to signals to improve
+-- performance and area. Restore ACK_I functionality
+--
+-- v1.46
+-- Implement SBAWait for freeze Bus values;
+-- Restore STB_O functionality
+--
+-- This code, modifications, derivate work or
+-- based upon, can not be used or distributed
+-- without the complete credits on this header.
+--
+-- This version is released under the GNU/GLP license
+-- http://www.gnu.org/licenses/gpl.html
+-- if you use this component for your research please
+-- include the appropriate credit of Author.
+--
+-- For commercial purposes request the appropriate
+-- license from the author.
+--
+-----------------------------------------------------------
+--
+-- User Program:
+--
+-- Version: 0.1
+-- Date: 20120116
+-- User Program: SBA GPIO Simple Demo
+--
+-----------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+use work.SBA_config.all;
+use work.SBA_package.all;
+
+entity  SBAController  is
+port(
+   RST_I : in std_logic;                     -- active high reset
+   CLK_I : in std_logic;                     -- main clock
+   DAT_I : in DATA_type;                     -- Data input Bus
+   DAT_O : out DATA_type;                    -- Data output Bus
+   ADR_O : out ADDR_type;                    -- Address output Bus
+   STB_O : out std_logic;                    -- Strobe enabler
+   WE_O  : out std_logic;                    -- Write / Read
+   ACK_I : in  std_logic;                    -- Strobe Acknoledge
+   INT_I : in  std_logic                     -- Interrupt request
+);
+end SBAController;
+
+architecture SBAController_Arch of SBAController is
+
+  signal step : step_type;                   -- Step counter
+  signal ret  : step_type;                   -- Return step for subroutines register
+  signal adr  : ADRi_type;                   -- Address register
+  signal pstep: step_type;                   -- Step counter + 1
+
+begin
+
+  Main : process (CLK_I, RST_I)
+
+-- General variables
+  variable jmp  : step_type;                 -- Jump step register
+  variable cal  : step_type;                 -- Call subroutine register
+  variable dati : DATi_type;                 -- Input Internal Data Bus
+  variable stb  : std_logic;                 -- strobe (Address valid)   
+  variable we   : std_logic;                 -- Write enable ('0' read enable)
+  variable dato : DATi_type;                 -- Output internal Data Bus
+
+
+------------------------------ SBA procedures --------------------------------
+
+  procedure SBAread(addr:in ADRi_type) is
+  begin
+    if (debug=1) then
+      Report "SBARead: adr=" &  integer'image(addr);
+    end if;
+
+    adr <= addr;
+    stb := '1';
+    we  := '0';
+  end;
+
+  procedure SBAread(addr:in unsigned) is
+  begin
+    if (debug=1) then
+      Report "SBARead: adr=" &  integer'image(to_integer(addr));
+    end if;
+
+    adr <= to_integer(addr);
+    stb := '1';
+    we  := '0';
+  end;
+
+  procedure SBAwrite(addr:in ADRi_type; data: in unsigned) is
+  begin
+    if (debug=1) then
+      Report "SBAwrite: adr=" &  integer'image(addr) & " dat=" &  integer'image(to_integer(data));
+    end if;
+
+    adr <= addr;
+    stb := '1';
+    we  := '1';
+    dato:= resize(data,dato'length);
+  end;
+
+  procedure SBAwrite(addr:in unsigned; data: in unsigned) is
+  begin
+    if (debug=1) then
+      Report "SBAwrite: adr=" &  integer'image(to_integer(addr)) & " dat=" &  integer'image(to_integer(data));
+    end if;
+
+    adr <= to_integer(addr);
+    stb := '1';
+    we  := '1';
+    dato:= resize(data,dato'length);
+  end;
+ 
+  procedure SBARet is
+  begin
+    jmp:=ret;
+  end;
+  
+  procedure SBACall(stp:in step_type) is
+  begin
+    cal:=stp;
+  end;
+
+  procedure SBAWait is
+  begin
+    stb:='1'; 
+  end;
+  
+------------------------------ User Registers and Constants -----------------------------
+
+-- General Registers 
+ variable Dlytmp  : unsigned(23 downto 0);      -- Delay register
+ 
+-- Application Specific registers
+
+ variable reg1   : unsigned(15 downto 0);       -- GP User register
+ variable reg2   : unsigned(15 downto 0);       -- GP User register
+ variable reg3   : unsigned(15 downto 0);
+
+-- Auto generated Jumping constants
+
+ constant Init: step_type := 001;
+ constant Delay: step_type := 003;
+ constant WaitI2C: step_type := 004;
+ constant MainLoop: step_type := 006;
+ constant LecturaData: step_type := 020;
+
+
+--------------------------- End of User Registers and Constants -------------------------
+
+begin
+
+  if rising_edge(CLK_I) then
+  
+    if (debug=1) then
+      Report "Step: " &  integer'image(step);
+    end if;
+   
+    if (RST_I='1') then
+      step <= 1;              -- First step is 1 (cal and jmp valid only if >0)
+      ret  <= 0;              -- Default ret value  
+      adr  <= 0;              -- Default Address Value
+      we   :='1';             -- Default we value on reset
+      stb  :='0';
+      dato :=(others=>'0');
+--------------------------------------------------------------------------------------
+-- Reset auxiliaries registers
+      reg1 :=(others=>'0');
+      reg2 :=(others=>'0');
+      Dlytmp:=(others=>'0');
+--------------------------------------------------------------------------------------
+
+    elsif (ACK_I='1') or (stb='0') then
+
+      dati:= unsigned(DAT_I); -- Get value from data bus
+      jmp := 0;               -- Default jmp value  
+      cal := 0;               -- Default cal value
+      stb :='0';              -- Default stb value  
+
+      case step is
+
+------------------------------ User Programmable Section -----------------------------
+
+                -- /L:Init
+        When 001=> reg1:=x"0000";reg2:=x"0057";
+        When 002=> SBAWrite(LEDS,reg2);
+                   jmp:=MainLoop;
+                -- /L:Delay
+        When 003=> if Dlytmp/=0 then
+                   Dec(Dlytmp);
+                   jmp:=step;
+                    else
+                   SBARet;
+                   end if;
+                -- /L:WaitI2C
+        When 004=> SBARead(I2C);
+        When 005=> if (dati(15)='1' or dati(14)='1' ) then --si el dispositivo no esta listo
+                     SBARead(I2C);
+                     jmp:=step;
+                   else SBARet;
+                   end if;				 
+                -- /L:MainLoop
+                -- Proceso de escritura
+        When 006=> SBAWrite(I2C_REG3,x"0008");   -- x"0008" --> 00 = position within the RAM
+																				--> 08 = Data to write
+        When 007=> SBAWrite(I2C_REG2,x"0000" );  -- write the number of bytes - 1  
+        When 008=> SBAWrite(I2C_REG1,x"002D" );  -- Initial register address
+        When 009=> SBAWrite(I2C_REG0,x"1D01" );  -- x"1D01"  --> 1D = Device Address
+																				 --> 01 = Configure write and Start 
+        When 010=> SBAWait;		  
+        When 011=> SBAcall(WaitI2C);
+
+        When 012=> SBAWrite(I2C_REG3,x"000F");   -- x"0008" --> 00 = position within the RAM
+																				--> 08 = Data to write
+        When 013=> SBAWrite(I2C_REG2,x"0000" );  -- write the number of bytes - 1  
+        When 014=> SBAWrite(I2C_REG1,x"0031" );  -- Initial register address
+        When 015=> SBAWrite(I2C_REG0,x"1D01" );  -- x"1D01"  --> 1D = Device Address
+																				 --> 01 = Configure write and Start 
+        When 016=> SBAWait;		  
+        When 017=> SBAcall(WaitI2C);
+		  
+					 -- reading process data of I2C
+        When 018=> SBAWrite(I2C_REG2,x"0005");   -- n bytes -1 
+        When 019=> SBAWrite(I2C_REG1,x"0032");   -- direccion del dispositivo
+                -- /L: LecturaData
+        When 020=> SBAWrite(I2C_REG0,x"1D03");   -- x"1D01"  --> 1D = Address Device
+																				 --> 11 = Read & Start
+        When 021=> SBAWait; 
+        When 022=> SBAcall(WaitI2C);
+        When 023=> SBAWrite(I2C_REG0,x"0008");   -- x"XX08"  --> XX --> unaffected
+																 --          --> 08 --> Enable read memory RAM 	
+        When 024=> SBAwait;                      -- Wait complete write cycle 
+        When 025=> SBARead(I2C);						 -- Read Data ( 6 bytes ) 
+		  
+        When 026=> SBAwait;  reg1:= x"00" & dati(7 downto 0);	-- first data    X (LSB)
+        When 027=> SBAwait;  reg2:= x"00" & dati(7 downto 0);	-- second data   X (MSB) 
+        When 028=> SBAwait; 												-- third data    Y (LSB)
+        When 029=> SBAwait; 												-- fourth data   Y (MSB)
+        When 030=> SBAwait; 												-- fifth data    Z (LSB)
+        When 031=> SBAwait; reg3:= x"00" & dati(7 downto 0); 	-- sixth data    Z (MSB)
+        When 032=> SBAWrite(LEDS,reg2);								-- writting the value of X(LSB)
+        When 033=> jmp:=LecturaData;
+
+------------------------------ End of User Programmable Section -----------------------------
+
+        When others=> jmp:=1; 
+      end case;
+
+      if jmp>0 then step<=jmp; else step<=pstep; end if;
+      if cal>0 then ret<=pstep; step<=cal; end if;
+
+    end if;
+
+    STB_O <= stb;
+    WE_O  <= we;
+    DAT_O <= std_logic_vector(dato);
+
+  end if;
+end process;
+
+pstep <= step + 1;
+ADR_O <= std_logic_vector(to_unsigned(adr,ADR_O'length));
+
+
+end SBAController_Arch;

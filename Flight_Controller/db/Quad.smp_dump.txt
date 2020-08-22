@@ -1,0 +1,36 @@
+
+State Machine - |Quad|uart:inst11|uart_tx:uart_tx_unit|state_reg
+Name state_reg.stop state_reg.data state_reg.start state_reg.idle 
+state_reg.idle 0 0 0 0 
+state_reg.start 0 0 1 1 
+state_reg.data 0 1 0 1 
+state_reg.stop 1 0 0 1 
+
+State Machine - |Quad|SENSORS:inst1|I2C_CORE:I2C|CORE_I2C:U2|state_I2C
+Name state_I2C.ReadSt state_I2C.WriteSt state_I2C.RStartSt state_I2C.StopSt state_I2C.StartSt state_I2C.IdleSt 
+state_I2C.IdleSt 0 0 0 0 0 0 
+state_I2C.StartSt 0 0 0 0 1 1 
+state_I2C.StopSt 0 0 0 1 0 1 
+state_I2C.RStartSt 0 0 1 0 0 1 
+state_I2C.WriteSt 0 1 0 0 0 1 
+state_I2C.ReadSt 1 0 0 0 0 1 
+
+State Machine - |Quad|SENSORS:inst1|I2C_CORE:I2C|CORE_I2C:U2|state
+Name state.REndSt state.RWaitSt state.RAckSt state.ReadB state.WEndSt state.WWaitSt state.WriteB state.IniSt 
+state.IniSt 0 0 0 0 0 0 0 0 
+state.WriteB 0 0 0 0 0 0 1 1 
+state.WWaitSt 0 0 0 0 0 1 0 1 
+state.WEndSt 0 0 0 0 1 0 0 1 
+state.ReadB 0 0 0 1 0 0 0 1 
+state.RAckSt 0 0 1 0 0 0 0 1 
+state.RWaitSt 0 1 0 0 0 0 0 1 
+state.REndSt 1 0 0 0 0 0 0 1 
+
+State Machine - |Quad|SENSORS:inst1|I2C_CORE:I2C|ControllerI2C:U1|i2c_st
+Name i2c_st.StReadReg i2c_st.StRead_w i2c_st.StRead i2c_st.StWrite i2c_st.StAddr i2c_st.Minit 
+i2c_st.Minit 0 0 0 0 0 0 
+i2c_st.StAddr 0 0 0 0 1 1 
+i2c_st.StWrite 0 0 0 1 0 1 
+i2c_st.StRead 0 0 1 0 0 1 
+i2c_st.StRead_w 0 1 0 0 0 1 
+i2c_st.StReadReg 1 0 0 0 0 1 

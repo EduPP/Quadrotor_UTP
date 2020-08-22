@@ -1,0 +1,151 @@
+# -------------------------------------------------------------------------- #
+#
+# Copyright (C) 1991-2011 Altera Corporation
+# Your use of Altera Corporation's design tools, logic functions 
+# and other software and tools, and its AMPP partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Altera Program License 
+# Subscription Agreement, Altera MegaCore Function License 
+# Agreement, or other applicable license agreement, including, 
+# without limitation, that your use is for the sole purpose of 
+# programming logic devices manufactured by Altera and sold by 
+# Altera or its authorized distributors.  Please refer to the 
+# applicable agreement for further details.
+#
+# -------------------------------------------------------------------------- #
+#
+# Quartus II 32-bit
+# Version 11.1 Build 216 11/23/2011 Service Pack 1 SJ Web Edition
+# Date created = 13:30:05  September 11, 2014
+#
+# -------------------------------------------------------------------------- #
+#
+# Notes:
+#
+# 1) The default values for assignments are stored in the file:
+#		Quad_assignment_defaults.qdf
+#    If this file doesn't exist, see file:
+#		assignment_defaults.qdf
+#
+# 2) Altera recommends that you do not modify this file. This
+#    file is updated automatically by the Quartus II software
+#    and any changes you make may be lost or overwritten.
+#
+# -------------------------------------------------------------------------- #
+
+
+set_global_assignment -name FAMILY "Cyclone IV E"
+set_global_assignment -name DEVICE EP4CE22F17C6
+set_global_assignment -name TOP_LEVEL_ENTITY Quad
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION "11.1 SP1"
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "13:30:05  SEPTEMBER 11, 2014"
+set_global_assignment -name LAST_QUARTUS_VERSION "11.1 SP1"
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR 1
+set_global_assignment -name PARTITION_NETLIST_TYPE SOURCE -section_id Top
+set_global_assignment -name PARTITION_FITTER_PRESERVATION_LEVEL PLACEMENT_AND_ROUTING -section_id Top
+set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "23 MM HEAT SINK WITH 200 LFPM AIRFLOW"
+set_global_assignment -name POWER_BOARD_THERMAL_MODEL "NONE (CONSERVATIVE)"
+
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
+
+set_location_assignment PIN_R8 -to CLK_BRD
+set_location_assignment PIN_L4 -to DRAM_ADDR[12]
+set_location_assignment PIN_N1 -to DRAM_ADDR[11]
+set_location_assignment PIN_N2 -to DRAM_ADDR[10]
+set_location_assignment PIN_P1 -to DRAM_ADDR[9]
+set_location_assignment PIN_R1 -to DRAM_ADDR[8]
+set_location_assignment PIN_T6 -to DRAM_ADDR[7]
+set_location_assignment PIN_N8 -to DRAM_ADDR[6]
+set_location_assignment PIN_T7 -to DRAM_ADDR[5]
+set_location_assignment PIN_P8 -to DRAM_ADDR[4]
+set_location_assignment PIN_M8 -to DRAM_ADDR[3]
+set_location_assignment PIN_N6 -to DRAM_ADDR[2]
+set_location_assignment PIN_N5 -to DRAM_ADDR[1]
+set_location_assignment PIN_P2 -to DRAM_ADDR[0]
+set_location_assignment PIN_M6 -to DRAM_BA[1]
+set_location_assignment PIN_M7 -to DRAM_BA[0]
+set_location_assignment PIN_L1 -to DRAM_CAS_N
+set_location_assignment PIN_L7 -to DRAM_CKE
+set_location_assignment PIN_R4 -to DRAM_CLK
+set_location_assignment PIN_P6 -to DRAM_CS_N
+set_location_assignment PIN_K1 -to DRAM_DQ[15]
+set_location_assignment PIN_N3 -to DRAM_DQ[14]
+set_location_assignment PIN_P3 -to DRAM_DQ[13]
+set_location_assignment PIN_R5 -to DRAM_DQ[12]
+set_location_assignment PIN_R3 -to DRAM_DQ[11]
+set_location_assignment PIN_T3 -to DRAM_DQ[10]
+set_location_assignment PIN_T2 -to DRAM_DQ[9]
+set_location_assignment PIN_T4 -to DRAM_DQ[8]
+set_location_assignment PIN_R7 -to DRAM_DQ[7]
+set_location_assignment PIN_J1 -to DRAM_DQ[6]
+set_location_assignment PIN_J2 -to DRAM_DQ[5]
+set_location_assignment PIN_K2 -to DRAM_DQ[4]
+set_location_assignment PIN_K5 -to DRAM_DQ[3]
+set_location_assignment PIN_L8 -to DRAM_DQ[2]
+set_location_assignment PIN_G1 -to DRAM_DQ[1]
+set_location_assignment PIN_G2 -to DRAM_DQ[0]
+set_location_assignment PIN_T5 -to DRAM_DQM[1]
+set_location_assignment PIN_R6 -to DRAM_DQM[0]
+set_location_assignment PIN_L2 -to DRAM_RAS_N
+set_location_assignment PIN_C2 -to DRAM_WE_N
+set_location_assignment PIN_J15 -to RST_BRD
+
+set_location_assignment PIN_L13 -to GPS_RXD
+set_location_assignment PIN_N14 -to GPS_TXD
+set_location_assignment PIN_T10 -to I2C_SCLK
+set_location_assignment PIN_P11 -to I2C_SDAT
+set_location_assignment PIN_D3 -to PWM1
+set_location_assignment PIN_C3 -to PWM2
+set_location_assignment PIN_A3 -to PWM3
+set_location_assignment PIN_B4 -to PWM4
+set_location_assignment PIN_D12 -to pwm_in_1
+set_location_assignment PIN_A12 -to pwm_in_2
+set_location_assignment PIN_C11 -to pwm_in_3
+set_location_assignment PIN_E11 -to pwm_in_4
+set_location_assignment PIN_J14 -to Xbee_RXD
+set_location_assignment PIN_K15 -to Xbee_TXD
+
+set_location_assignment PIN_H2 -to data0_to_the_epcs_flash_controller
+set_location_assignment PIN_H1 -to dclk_from_the_epcs_flash_controller
+set_location_assignment PIN_D2 -to sce_from_the_epcs_flash_controller
+set_location_assignment PIN_C1 -to sdo_from_the_epcs_flash_controller
+set_global_assignment -name USE_CONFIGURATION_DEVICE OFF
+set_global_assignment -name CRC_ERROR_OPEN_DRAIN OFF
+set_global_assignment -name RESERVE_DATA0_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name RESERVE_DATA1_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name RESERVE_FLASH_NCE_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name RESERVE_DCLK_AFTER_CONFIGURATION "USE AS REGULAR IO"
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_NEAR_END_VMEAS "HALF VCCIO" -fall
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -rise
+set_global_assignment -name OUTPUT_IO_TIMING_FAR_END_VMEAS "HALF SIGNAL SWING" -fall
+set_location_assignment PIN_C6 -to out_test[3]
+set_location_assignment PIN_D6 -to out_test[2]
+set_location_assignment PIN_A6 -to out_test[1]
+set_location_assignment PIN_D5 -to out_test[0]
+set_global_assignment -name VHDL_FILE hdl/uart_tx.vhd
+set_global_assignment -name VHDL_FILE hdl/uart.vhd
+set_global_assignment -name VHDL_FILE hdl/mod_m.vhd
+set_global_assignment -name VHDL_FILE hdl/fifo.vhd
+set_global_assignment -name VHDL_FILE hdl/PWM.vhd
+set_global_assignment -name VHDL_FILE hdl/DecoderPwm.vhd
+set_global_assignment -name VHDL_FILE hdl/lib/SysCon_v0.1.vhd
+set_global_assignment -name VHDL_FILE hdl/lib/SBApkg_v4.9.vhd
+set_global_assignment -name VHDL_FILE hdl/lib/I2C_SENDBYTE.vhd
+set_global_assignment -name VHDL_FILE hdl/lib/I2C_BRIDGE.vhd
+set_global_assignment -name VHDL_FILE hdl/lib/I2C_ADAPTER.vhd
+set_global_assignment -name VHDL_FILE hdl/lib/GPIO_Adapter_v2.2.vhd
+set_global_assignment -name VHDL_FILE hdl/lib/DataIntf_v1.0.vhd
+set_global_assignment -name VHDL_FILE hdl/SENSORS.vhd
+set_global_assignment -name VHDL_FILE hdl/SBAController_v1.47.vhd
+set_global_assignment -name VHDL_FILE hdl/SBAcfg_v1.3.vhd
+set_global_assignment -name VHDL_FILE hdl/AddrSpace_v3.2.vhd
+set_global_assignment -name BDF_FILE Quad.bdf
+set_global_assignment -name QIP_FILE NiosII.qip
+set_global_assignment -name VHDL_FILE hdl/Tacometro.vhd
+set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top
